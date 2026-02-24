@@ -3,11 +3,11 @@ import requests
 import os
 import time
 
-# 1. 구독할 뉴스 사이트의 RSS 주소 목록 (인벤은 '인기 뉴스'로 변경)
+# 1. 구독할 뉴스 사이트의 RSS 주소 목록 (테스트를 위해 모두 '전체 뉴스'로 설정)
 RSS_URLS = [
     "https://www.thisisgame.com/rss/",       # 디스이즈게임 (전체)
     "https://www.gamemeca.com/rss/",         # 게임메카 (전체)
-    "http://www.inven.co.kr/rss/news/webzine_hot.xml" # ⭐인벤 (인기 뉴스)⭐
+    "http://rss.inven.co.kr/rss/news/webzine_total.xml" # ⭐'인기 뉴스'를 '전체 뉴스'로 잠시 변경하여 테스트합니다.⭐
 ]
 
 # 2. GitHub Secrets에서 슬랙 웹훅 URL 가져오기
@@ -37,19 +37,16 @@ def fetch_news():
         all_entries.extend(feed.entries)
         
     if not all_entries:
-        send_to_slack("새로운 뉴스가 없습니다.")
+        send_to_slack("새로운 뉴스가 없습니다. (테스트 모드)")
         return
         
-    # 모든 기사를 최신 순으로 정렬
     all_entries.sort(key=lambda x: x.get("published_parsed", time.gmtime(0)), reverse=True)
     
-    # 정렬된 기사들 중에서 최신 10개만 선택
     latest_entries = all_entries[:10]
 
-    news_messages = ["🎮 오늘의 TOP 10 게임 뉴스! (종합) 🎮\n"]
+    news_messages = ["🎮 오늘의 TOP 10 게임 뉴스! (테스트) 🎮\n"]
     for i, entry in enumerate(latest_entries):
         site_name = entry.link.split('/')[2].replace('www.', '')
-        # 각 뉴스에 순위(1위, 2위...) 추가
         news_messages.append(f"*{i+1}위* | *{entry.title}* `({site_name})`\n<{entry.link}|자세히 보기>\n")
     
     send_to_slack("\n".join(news_messages))
